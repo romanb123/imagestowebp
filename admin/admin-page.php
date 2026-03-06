@@ -2,7 +2,7 @@
 
 <div class="wrap itwp-wrap">
 	<h1><?php esc_html_e( 'Images to WebP', 'imagestowebp' ); ?></h1>
-	<p class="itwp-subtitle"><?php esc_html_e( 'Convert your media library images to WebP for faster page loads.', 'imagestowebp' ); ?></p>
+	<p class="itwp-subtitle"><?php esc_html_e( 'Replace JPEG, PNG, and GIF images in your media library with WebP — smaller files, same quality.', 'imagestowebp' ); ?></p>
 
 	<?php if ( ! $gd_webp ) : ?>
 		<div class="notice notice-error">
@@ -59,10 +59,11 @@
 	<div class="itwp-info-box">
 		<h3><?php esc_html_e( 'How it works', 'imagestowebp' ); ?></h3>
 		<ul>
-			<li><?php esc_html_e( 'WebP files are saved alongside the originals (e.g. image.jpg → image.webp).', 'imagestowebp' ); ?></li>
-			<li><?php esc_html_e( 'Apache servers: .htaccess rules are added on activation to serve WebP automatically to supported browsers.', 'imagestowebp' ); ?></li>
-			<li><?php esc_html_e( 'New uploads are converted automatically.', 'imagestowebp' ); ?></li>
-			<li><?php esc_html_e( 'Thumbnails for each image size are also converted.', 'imagestowebp' ); ?></li>
+			<li><?php esc_html_e( 'Original JPEG/PNG/GIF files are replaced by WebP — the originals are deleted.', 'imagestowebp' ); ?></li>
+			<li><?php esc_html_e( 'WordPress attachment records (URL, mime type, metadata) are updated to point to the new WebP file.', 'imagestowebp' ); ?></li>
+			<li><?php esc_html_e( 'All thumbnail sizes are replaced too.', 'imagestowebp' ); ?></li>
+			<li><?php esc_html_e( 'New uploads are automatically replaced with WebP on the fly.', 'imagestowebp' ); ?></li>
+			<li><strong><?php esc_html_e( 'This action is irreversible — make sure you have a backup.', 'imagestowebp' ); ?></strong></li>
 		</ul>
 	</div>
 </div>

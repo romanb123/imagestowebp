@@ -21,7 +21,8 @@ require_once ITWP_PLUGIN_DIR . 'admin/class-admin-page.php';
 add_action( 'plugins_loaded', 'itwp_init' );
 function itwp_init() {
 	new ITWP_Admin_Page();
-	add_filter( 'wp_handle_upload', 'itwp_auto_convert_on_upload' );
+	// Replace newly uploaded images with WebP (fires after attachment post is created).
+	add_action( 'add_attachment', 'itwp_auto_replace_on_upload' );
 
 	// Serve WebP to browsers that support it (works on any server — Apache, Nginx, etc.)
 	if ( itwp_browser_supports_webp() ) {
@@ -104,15 +105,14 @@ function itwp_filter_srcset( $sources ) {
 }
 
 /**
- * Auto-convert images to WebP on upload.
+ * Auto-replace newly uploaded images with WebP.
  */
-function itwp_auto_convert_on_upload( $upload ) {
-	$convertible = [ 'image/jpeg', 'image/png', 'image/gif' ];
-	if ( in_array( $upload['type'], $convertible, true ) ) {
+function itwp_auto_replace_on_upload( $attachment_id ) {
+	$mime = get_post_mime_type( $attachment_id );
+	if ( in_array( $mime, [ 'image/jpeg', 'image/png', 'image/gif' ], true ) ) {
 		$converter = new ITWP_WebP_Converter();
-		$converter->convert( $upload['file'] );
+		$converter->replace_with_webp( $attachment_id );
 	}
-	return $upload;
 }
 
 register_activation_hook( __FILE__, 'itwp_activate' );
