@@ -22,6 +22,85 @@ add_action( 'plugins_loaded', 'itwp_init' );
 function itwp_init() {
 	new ITWP_Admin_Page();
 	add_filter( 'wp_handle_upload', 'itwp_auto_convert_on_upload' );
+
+	// Serve WebP to browsers that support it (works on any server — Apache, Nginx, etc.)
+	if ( itwp_browser_supports_webp() ) {
+		add_filter( 'wp_get_attachment_image_src', 'itwp_filter_attachment_image_src', 10, 1 );
+		add_filter( 'the_content',                 'itwp_filter_content_images' );
+		add_filter( 'wp_calculate_image_srcset',   'itwp_filter_srcset', 10, 1 );
+	}
+}
+
+/**
+ * Check if the current browser accepts WebP.
+ */
+function itwp_browser_supports_webp() {
+	return isset( $_SERVER['HTTP_ACCEPT'] )
+		&& strpos( $_SERVER['HTTP_ACCEPT'], 'image/webp' ) !== false;
+}
+
+/**
+ * Replace a single image URL with its WebP equivalent if it exists.
+ */
+function itwp_maybe_webp_url( $url ) {
+	if ( empty( $url ) || strpos( $url, 'wp-content/uploads' ) === false ) {
+		return $url;
+	}
+
+	$upload_dir  = wp_upload_dir();
+	$base_url    = $upload_dir['baseurl'];
+	$base_dir    = $upload_dir['basedir'];
+	$relative    = str_replace( $base_url, '', $url );
+	$ext         = strtolower( pathinfo( $relative, PATHINFO_EXTENSION ) );
+
+	if ( ! in_array( $ext, [ 'jpg', 'jpeg', 'png', 'gif' ], true ) ) {
+		return $url;
+	}
+
+	$webp_rel  = preg_replace( '/\.' . preg_quote( $ext, '/' ) . '$/i', '.webp', $relative );
+	$webp_file = $base_dir . $webp_rel;
+
+	if ( file_exists( $webp_file ) ) {
+		return $base_url . $webp_rel;
+	}
+
+	return $url;
+}
+
+/**
+ * Filter wp_get_attachment_image_src() results.
+ */
+function itwp_filter_attachment_image_src( $image ) {
+	if ( ! empty( $image[0] ) ) {
+		$image[0] = itwp_maybe_webp_url( $image[0] );
+	}
+	return $image;
+}
+
+/**
+ * Replace image URLs inside post content.
+ */
+function itwp_filter_content_images( $content ) {
+	return preg_replace_callback(
+		'/(<img[^>]+src=["\'])([^"\']+\.(jpe?g|png|gif))(["\'])/i',
+		function ( $matches ) {
+			return $matches[1] . itwp_maybe_webp_url( $matches[2] ) . $matches[4];
+		},
+		$content
+	);
+}
+
+/**
+ * Replace URLs in srcset attributes.
+ */
+function itwp_filter_srcset( $sources ) {
+	if ( ! is_array( $sources ) ) return $sources;
+	foreach ( $sources as &$source ) {
+		if ( ! empty( $source['url'] ) ) {
+			$source['url'] = itwp_maybe_webp_url( $source['url'] );
+		}
+	}
+	return $sources;
 }
 
 /**

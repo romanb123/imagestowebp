@@ -113,12 +113,20 @@ class ITWP_WebP_Converter {
 		$processed = 0;
 		$failed    = 0;
 		$skipped   = 0;
+		$errors    = [];
 
 		foreach ( $batch as $image ) {
 			$file = get_attached_file( $image->ID );
 
-			if ( ! $file || ! file_exists( $file ) ) {
+			if ( ! $file ) {
 				$failed++;
+				$errors[] = 'ID ' . $image->ID . ': no file path registered.';
+				continue;
+			}
+
+			if ( ! file_exists( $file ) ) {
+				$failed++;
+				$errors[] = 'ID ' . $image->ID . ': file not found on disk — ' . basename( $file );
 				continue;
 			}
 
@@ -146,6 +154,7 @@ class ITWP_WebP_Converter {
 				$processed++;
 			} else {
 				$failed++;
+				$errors[] = 'ID ' . $image->ID . ': GD conversion failed — ' . basename( $file );
 			}
 		}
 
@@ -153,6 +162,7 @@ class ITWP_WebP_Converter {
 			'processed'   => $processed,
 			'failed'      => $failed,
 			'skipped'     => $skipped,
+			'errors'      => $errors,
 			'total'       => count( $images ),
 			'next_offset' => $offset + $batch_size,
 			'done'        => ( $offset + $batch_size ) >= count( $images ),

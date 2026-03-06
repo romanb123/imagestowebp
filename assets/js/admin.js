@@ -69,6 +69,11 @@
 			}
 			if ( data.failed > 0 ) {
 				addLog( data.failed + ' image(s) failed in this batch.', 'error' );
+				if ( data.errors && data.errors.length ) {
+					$.each( data.errors, function ( i, msg ) {
+						addLog( '  ' + msg, 'error' );
+					} );
+				}
 			}
 
 			if ( data.done ) {
